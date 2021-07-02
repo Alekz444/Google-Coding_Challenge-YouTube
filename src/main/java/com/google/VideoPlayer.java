@@ -140,32 +140,22 @@ public class VideoPlayer {
   }
 
   public void addVideoToPlaylist(String playlistName, String videoId) {
-    VideoPlaylist playListSearched = null;
-    for(VideoPlaylist vp :  videoPlaylists){
-      if(vp.getName().trim().equalsIgnoreCase(playlistName.trim())){
-        playListSearched = vp;
-      }
-    }
-    if(playListSearched == null){
+    VideoPlaylist vp = searchedPlaylist(playlistName);
+    if(vp ==  null){
       System.out.println("Cannot add video to " + playlistName + ": Playlist does not exist");
       return;
     }
-    Video videoSearched = null;
-    for(Video v : videoLibrary.getVideos()){
-      if(v.getVideoId().equals(videoId)){
-        videoSearched = v;
-      }
-    }
-    if(videoSearched ==  null){
+    Video v = searchedVideo(videoId);
+    if(v == null){
       System.out.println("Cannot add video to " + playlistName + ": Video does not exist");
       return;
     }
-    if(playListSearched.getVideos().contains(videoSearched)){
+    if(vp.getVideos().contains(v)){
       System.out.println("Cannot add video to " + playlistName + ": Video already added");
       return;
     }
-    playListSearched.addVideo(videoSearched);
-    System.out.println("Added video to " + playlistName + ": " + videoSearched.getTitle());
+    vp.addVideo(v);
+    System.out.println("Added video to " + playlistName + ": " + v.getTitle());
   }
 
   public void showAllPlaylists() {
@@ -174,7 +164,10 @@ public class VideoPlayer {
       return;
     }
     System.out.println("Showing all playlists:");
-
+    Collections.sort(videoPlaylists);
+    for(VideoPlaylist vp : videoPlaylists){
+      System.out.println(vp.getName());
+    }
   }
 
   public void showPlaylist(String playlistName) {
@@ -189,30 +182,60 @@ public class VideoPlayer {
       System.out.println("No videos here yet");
       return;
     }
-
-    System.out.printf("Showing playlist: " + playlistName);
-    List<Video>  videos = playlist.getVideos();
-    for(Video v : videos){
-      String output = v.getTitle() + " " + v.getVideoId() + " [";
-      for(int i = 0; i < v.getTags().size(); ++i){
-        if(i != v.getTags().size() - 1){
-          output += v.getTags().get(i) + " ";
-        }
-        else{
-          output += v.getTags().get(i);
-        }
-      }
-      output += "]";
-      System.out.printf(output);
+    System.out.println("Showing playlist: " + playlistName);
+    for(Video v : playlist.getVideos()){
+      String output = v.getTitle() + " (" + v.getVideoId() + ") ";
+      List<String> tags = v.getTags();
+      output += tagsToString(tags);
+      System.out.println(output);
     }
   }
 
   public void removeFromPlaylist(String playlistName, String videoId) {
-    System.out.println("removeFromPlaylist needs implementation");
+    VideoPlaylist  vp = searchedPlaylist(playlistName);
+    if(vp == null){
+      System.out.println("Cannot remove video from " + playlistName + ": Playlist does not exist");
+      return;
+    }
+    Video v = searchedVideo(videoId);
+    if(v == null){
+      System.out.println("Cannot remove video from " + playlistName + ": Video does not exist");
+      return;
+    }
+    boolean found = false;
+    for(Video video : vp.getVideos()){
+      if(video == v){
+        found = true;
+      }
+    }
+    if(found == false){
+      System.out.println("Cannot remove video from " + playlistName + ": Video is not in playlist");
+      return;
+    }
+    vp.removeVideo(v);
+    System.out.println("Removed video from " + playlistName + ": " + v.getTitle());
   }
 
   public void clearPlaylist(String playlistName) {
-    System.out.println("clearPlaylist needs implementation");
+    VideoPlaylist vp = searchedPlaylist(playlistName);
+    if(vp == null){
+      System.out.println("Cannot clear playlist " +  playlistName + ": Playlist does not exist");
+      return;
+    }
+    //System.out.println("before creating list");
+    List<Video> list = vp.getVideos();
+    //System.out.println("after creating list");
+    Iterator it = list.iterator();
+    while(it.hasNext()){
+      it.remove();
+    }
+    /*
+    for(Video v : list){
+      System.out.println("entered for loop " + v.getTitle());
+      vp.removeVideo(v);
+      System.out.println("after removal of video");
+    }*/
+    System.out.println("Successfully removed all videos from " + playlistName);
   }
 
   public void deletePlaylist(String playlistName) {
@@ -303,16 +326,33 @@ public class VideoPlayer {
     return null;
   }
 
-  private Video getVideoById(String id){
-    for(Video v : videoLibrary.getVideos()){
-      if(v.getVideoId() == id){
-        return v;
+  /**
+   * Returns a playlist by its name
+   * @param playlistName
+   * @return The playlist or NULL
+   */
+  private VideoPlaylist searchedPlaylist(String playlistName){
+    for(VideoPlaylist vp :  videoPlaylists){
+      if(vp.getName().trim().equalsIgnoreCase(playlistName.trim())){
+        return vp;
       }
     }
     return null;
   }
 
-
+  /**
+   * Returns a video by its id
+   * @param videoId
+   * @return A video or NULL
+   */
+  private Video searchedVideo(String videoId){
+    for(Video v : videoLibrary.getVideos()){
+      if(v.getVideoId().equals(videoId)){
+        return v;
+      }
+    }
+    return null;
+  }
 }
 
 
