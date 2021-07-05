@@ -160,7 +160,7 @@ public class VideoPlayer {
 
   public void showAllPlaylists() {
     if(videoPlaylists.isEmpty()){
-      System.out.println("No playlists yet");
+      System.out.println("No playlists exist yet");
       return;
     }
     System.out.println("Showing all playlists:");
@@ -238,7 +238,8 @@ public class VideoPlayer {
       return;
     }
     videoPlaylists.remove(vp);
-    System.out.println("Deleted playlist: " + vp.getName());
+    System.out.println("Deleted playlist: " + playlistName);
+
   }
 
   public void searchVideos(String searchTerm) {
