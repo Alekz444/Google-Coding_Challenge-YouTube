@@ -115,7 +115,7 @@ public class VideoPlayer {
     }
 
     String tagString = tagsToString(videoPlayed.getTags());
-    String output = "Currently  playing: ";
+    String output = "Currently playing: ";
     output += videoPlayed.getTitle() + " ";
     output += "(" + videoPlayed.getVideoId() + ") ";
     output += tagString;
@@ -222,24 +222,23 @@ public class VideoPlayer {
       System.out.println("Cannot clear playlist " +  playlistName + ": Playlist does not exist");
       return;
     }
-    //System.out.println("before creating list");
     List<Video> list = vp.getVideos();
-    //System.out.println("after creating list");
     Iterator it = list.iterator();
     while(it.hasNext()){
+      it.next();
       it.remove();
     }
-    /*
-    for(Video v : list){
-      System.out.println("entered for loop " + v.getTitle());
-      vp.removeVideo(v);
-      System.out.println("after removal of video");
-    }*/
     System.out.println("Successfully removed all videos from " + playlistName);
   }
 
   public void deletePlaylist(String playlistName) {
-    System.out.println("deletePlaylist needs implementation");
+    VideoPlaylist vp = searchedPlaylist(playlistName);
+    if(vp == null){
+      System.out.println("Cannot delete playlist " +  playlistName + ": Playlist does not exist");
+      return;
+    }
+    videoPlaylists.remove(vp);
+    System.out.println("Deleted playlist: " + vp.getName());
   }
 
   public void searchVideos(String searchTerm) {
