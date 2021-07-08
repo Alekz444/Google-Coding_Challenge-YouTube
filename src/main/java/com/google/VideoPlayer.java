@@ -2,6 +2,9 @@ package com.google;
 
 import org.apache.maven.shared.utils.StringUtils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -243,11 +246,52 @@ public class VideoPlayer {
   }
 
   public void searchVideos(String searchTerm) {
-    System.out.println("searchVideos needs implementation");
+    List<Video> videos = videoLibrary.getVideos();
+    HashMap<Integer, Video> numberedVideos = new HashMap<Integer, Video>();
+    Collections.sort(videos);
+    int index = 0;
+    String output = "";
+    for(Video v : videos){
+      String title = String.valueOf(v.getTitle());
+      title = title.toLowerCase();
+      String term = String.valueOf(searchTerm);
+      term = term.toLowerCase();
+      if(title.contains(term)){
+        index ++;
+        numberedVideos.put(index, v);
+        output += index + ") " + v.getTitle();
+        output += " (" + v.getVideoId() + ") ";
+        output += tagsToString(v.getTags());
+        output += "\n";
+      }
+
+    }
+    searchVideos(numberedVideos, searchTerm, output);
   }
 
   public void searchVideosWithTag(String videoTag) {
-    System.out.println("searchVideosWithTag needs implementation");
+    if(videoTag != null && videoTag.charAt(0) != '#'){
+      videoTag = "#" + videoTag;
+    }
+    List<Video> videos = videoLibrary.getVideos();
+    HashMap<Integer, Video> numberedVideos = new HashMap<Integer, Video>();
+    Collections.sort(videos);
+    int index = 0;
+    String output = "";
+    for(Video v : videos){
+      List<String> tags = v.getTags();
+      for(String t : tags){
+        if(t.equalsIgnoreCase(videoTag)){
+          index ++;
+          numberedVideos.put(index, v);
+          output += index + ") " + v.getTitle();
+          output += " (" + v.getVideoId() + ") ";
+          output += tagsToString(v.getTags());
+          output += "\n";
+        }
+      }
+    }
+    searchVideos(numberedVideos, videoTag, output);
   }
 
   public void flagVideo(String videoId) {
@@ -288,8 +332,6 @@ public class VideoPlayer {
     for(String t : tags){
       output = output + t + " ";
     }
-    //StringBuffer sb= new StringBuffer(output);
-    //sb.deleteCharAt(sb.length()-1);
     output = StringUtils.chop(output);
 
     output = output + "]";
@@ -353,6 +395,34 @@ public class VideoPlayer {
     }
     return null;
   }
+
+  private void searchVideos(HashMap<Integer, Video> numberedVideos, String searchedItem, String output){
+    if(numberedVideos.isEmpty()){
+      System.out.println("No search results for " + searchedItem);
+      return;
+    }
+    System.out.println("Here are the results for " + searchedItem + ":");
+    if ((output != null) && (output.length() > 0)) {
+      output = output.substring(0, output.length() - 1);
+    }
+    System.out.println(output);
+    System.out.println("Would you like to play any of the above? If yes, specify the number of the video.");
+    System.out.println("If your answer is not a valid number, we will assume it's a no.");
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    try {
+      int number = Integer.parseInt(br.readLine());
+      Video searchedVideo = numberedVideos.get(number);
+      if(searchedVideo != null){
+        playVideo(searchedVideo.getVideoId());
+      }
+    } catch (NumberFormatException nfe) {
+
+    }
+    catch (IOException e) {
+      //e.printStackTrace();
+    }
+  }
+
 }
 
 
