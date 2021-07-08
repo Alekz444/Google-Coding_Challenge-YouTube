@@ -36,6 +36,9 @@ public class VideoPlayer {
       String line = v.getTitle() + " (" + v.getVideoId() + ") ";
       List<String> tags = v.getTags();
       line += tagsToString(tags);
+      if(v.isFlagged()){
+        line += " - FLAGGED (reason: " + v.getReason() + ")";
+      }
       System.out.println(line);
     }
   }
@@ -52,6 +55,10 @@ public class VideoPlayer {
     }
     if (title == null) {
       System.out.println("Cannot play video: Video does not exist");
+      return;
+    }
+    if(videoSearched.isFlagged()){
+      System.out.println("Cannot play video: Video is currently flagged (reason: " + videoSearched.getReason() + ")");
       return;
     }
     stopVideoPlayed();
@@ -77,9 +84,24 @@ public class VideoPlayer {
       System.out.println("No videos available");
       return;
     }
-    stopVideoPlayed();
+    boolean thereAreUnflaggedVideos = false;
+    for(Video v : videos){
+      if(!v.isFlagged()){
+        thereAreUnflaggedVideos = true;
+      }
+    }
+    if(!thereAreUnflaggedVideos){
+      System.out.println("No videos available");
+      return;
+    }
+    //stopVideoPlayed();
     Random random = new Random();
     Video video = videos.get(random.nextInt(videos.size()));
+    if(video.isFlagged()){
+      System.out.println("Cannot play video: Video is currently flagged (reason: " + video.getReason() + ")");
+      return;
+    }
+    stopVideoPlayed();
     System.out.println("Playing video: " + video.getTitle());
     videoPlayed = video;
     isPaused = false;
@@ -153,6 +175,10 @@ public class VideoPlayer {
       System.out.println("Cannot add video to " + playlistName + ": Video does not exist");
       return;
     }
+    if(v.isFlagged()){
+      System.out.println("Cannot add video to " + playlistName + ": Video is currently flagged (reason: " + v.getReason() + ")");
+      return;
+    }
     if(vp.getVideos().contains(v)){
       System.out.println("Cannot add video to " + playlistName + ": Video already added");
       return;
@@ -190,6 +216,9 @@ public class VideoPlayer {
       String output = v.getTitle() + " (" + v.getVideoId() + ") ";
       List<String> tags = v.getTags();
       output += tagsToString(tags);
+      if(v.isFlagged()){
+        output += " - FLAGGED (reason: " + v.getReason() + ")";
+      }
       System.out.println(output);
     }
   }
@@ -256,7 +285,7 @@ public class VideoPlayer {
       title = title.toLowerCase();
       String term = String.valueOf(searchTerm);
       term = term.toLowerCase();
-      if(title.contains(term)){
+      if(title.contains(term) && !v.isFlagged()){
         index ++;
         numberedVideos.put(index, v);
         output += index + ") " + v.getTitle();
@@ -281,7 +310,7 @@ public class VideoPlayer {
     for(Video v : videos){
       List<String> tags = v.getTags();
       for(String t : tags){
-        if(t.equalsIgnoreCase(videoTag)){
+        if(t.equalsIgnoreCase(videoTag) && !v.isFlagged()){
           index ++;
           numberedVideos.put(index, v);
           output += index + ") " + v.getTitle();
@@ -295,15 +324,55 @@ public class VideoPlayer {
   }
 
   public void flagVideo(String videoId) {
-    System.out.println("flagVideo needs implementation");
+    Video video = searchedVideo(videoId);
+    if(video == null){
+      System.out.println("Cannot flag video: Video does not exist");
+      return;
+    }
+    if(video.isFlagged()){
+      System.out.println("Cannot flag video: Video is already flagged");
+      return;
+    }
+    video.flag("Not supplied");
+    if(video == videoPlayed){
+      System.out.println("Stopping video: " + video.getTitle());
+      videoPlayed = null;
+      isPaused = false;
+    }
+    System.out.println("Successfully flagged video: " + video.getTitle() + " (reason: " + video.getReason() + ")");
   }
 
   public void flagVideo(String videoId, String reason) {
-    System.out.println("flagVideo needs implementation");
+    Video video = searchedVideo(videoId);
+    if(video == null){
+      System.out.println("Cannot flag video: Video does not exist");
+      return;
+    }
+    if(video.isFlagged()){
+      System.out.println("Cannot flag video: Video is already flagged");
+      return;
+    }
+    video.flag(reason);
+    if(video == videoPlayed){
+      System.out.println("Stopping video: " + video.getTitle());
+      videoPlayed = null;
+      isPaused = false;
+    }
+    System.out.println("Successfully flagged video: " + video.getTitle() + " (reason: " + video.getReason() + ")");
   }
 
   public void allowVideo(String videoId) {
-    System.out.println("allowVideo needs implementation");
+    Video video = searchedVideo(videoId);
+    if(video == null){
+      System.out.println("Cannot remove flag from video: Video does not exist");
+      return;
+    }
+    if(!video.isFlagged()){
+      System.out.println("Cannot remove flag from video: Video is not flagged");
+      return;
+    }
+    video.unflag();
+    System.out.println("Successfully removed flag from video: " + video.getTitle());
   }
 
 
